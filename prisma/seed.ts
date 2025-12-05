@@ -1,6 +1,21 @@
 import { PrismaClient, UserRole } from '@prisma/client';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+import dotenv from 'dotenv';
 
-const prisma = new PrismaClient();
+// Cargar variables de entorno
+dotenv.config({ path: '.env.local' });
+
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL no está configurada');
+}
+
+// Crear pool y adapter para Prisma 7
+const pool = new Pool({ connectionString: databaseUrl });
+const adapter = new PrismaPg(pool);
+
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🌱 Iniciando seed de la base de datos...');
