@@ -3,12 +3,24 @@
 import "dotenv/config";
 import { defineConfig, env } from "prisma/config";
 
+// Obtener DATABASE_URL con fallback para prisma generate
+// Durante generate, no necesitamos una conexión real a la BD
+const getDatabaseUrl = () => {
+  try {
+    return env("DATABASE_URL");
+  } catch {
+    // Si DATABASE_URL no está disponible (durante generate en build),
+    // usar una URL dummy que no se conectará realmente
+    return process.env.DATABASE_URL || "postgresql://dummy:dummy@localhost:5432/dummy";
+  }
+};
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: env("DATABASE_URL"),
+    url: getDatabaseUrl(),
   },
 });
