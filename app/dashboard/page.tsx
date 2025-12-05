@@ -21,8 +21,25 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const data = loadRegistrations();
-      setRegistrations(data);
+      const loadData = async () => {
+        try {
+          const response = await fetch('/api/registrations');
+          if (response.ok) {
+            const data = await response.json();
+            setRegistrations(data);
+          } else {
+            // Fallback a localStorage si la API falla
+            const data = loadRegistrations();
+            setRegistrations(data);
+          }
+        } catch (error) {
+          console.error('Error al cargar registros:', error);
+          // Fallback a localStorage si la API falla
+          const data = loadRegistrations();
+          setRegistrations(data);
+        }
+      };
+      loadData();
     }
   }, [isAuthenticated]);
 

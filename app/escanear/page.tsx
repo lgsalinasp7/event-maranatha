@@ -10,32 +10,75 @@ export default function EscanearPage() {
   const [scannedCode, setScannedCode] = useState<string>('');
   const [scannedData, setScannedData] = useState<RegistrationData | null>(null);
 
-  const handleScan = () => {
+  const handleScan = async () => {
     if (!scannedCode) return;
+    
     try {
-      const decoded = JSON.parse(atob(scannedCode));
-      const registrations = loadRegistrations();
-      const found = registrations.find(r => r.id === decoded.id);
-      if (found) {
-        const updated = registrations.map(r =>
-          r.id === found.id
-            ? {
-                ...r,
-                attended: true,
-              }
-            : r
-        );
-        saveRegistrations(updated);
-        setScannedData({
-          ...found,
-          attended: true,
-        });
-        setScannedCode('');
-      } else {
-        alert('QR no válido o no encontrado');
+      // Buscar registro por QR code en la base de datos
+      const response = await fetch(`/api/registrations/${scannedCode}?qr=true`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          alert('QR no válido o no encontrado');
+          return;
+        }
+        throw new Error('Error al buscar el registro');
       }
+
+      const found = await response.json();
+      
+      // Si ya asistió, mostrar mensaje
+      if (found.attended) {
+        alert('Este registro ya fue marcado como asistente');
+        setScannedData(found);
+        setScannedCode('');
+        return;
+      }
+
+      // Actualizar asistencia
+      const updateResponse = await fetch(`/api/registrations/${found.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ attended: true }),
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('Error al actualizar la asistencia');
+      }
+
+      const updated = await updateResponse.json();
+      setScannedData(updated);
+      setScannedCode('');
     } catch (error) {
-      alert('Error al escanear el código QR');
+      console.error('Error al escanear:', error);
+      // Fallback a localStorage si la API falla
+      try {
+        const decoded = JSON.parse(atob(scannedCode));
+        const registrations = loadRegistrations();
+        const found = registrations.find(r => r.id === decoded.id);
+        if (found) {
+          const updated = registrations.map(r =>
+            r.id === found.id
+              ? {
+                  ...r,
+                  attended: true,
+                }
+              : r
+          );
+          saveRegistrations(updated);
+          setScannedData({
+            ...found,
+            attended: true,
+          });
+          setScannedCode('');
+        } else {
+          alert('QR no válido o no encontrado');
+        }
+      } catch (fallbackError) {
+        alert('Error al escanear el código QR');
+      }
     }
   };
 

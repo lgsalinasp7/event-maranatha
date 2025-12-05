@@ -36,10 +36,26 @@ export default function HomePage() {
   const [isLoginLoading, setIsLoginLoading] = useState(false);
 
   useEffect(() => {
-    const registrations = loadRegistrations();
-    setStats({
-      remaining: MAX_ATTENDEES - registrations.length,
-    });
+    // Cargar estadísticas desde la API
+    const loadStats = async () => {
+      try {
+        const response = await fetch('/api/registrations');
+        if (response.ok) {
+          const registrations = await response.json();
+          setStats({
+            remaining: MAX_ATTENDEES - registrations.length,
+          });
+        }
+      } catch (error) {
+        console.error('Error al cargar estadísticas:', error);
+        // Fallback a localStorage si la API falla
+        const registrations = loadRegistrations();
+        setStats({
+          remaining: MAX_ATTENDEES - registrations.length,
+        });
+      }
+    };
+    loadStats();
   }, []);
 
   const validateEmail = (email: string): boolean => {
@@ -79,10 +95,13 @@ export default function HomePage() {
     if (stats.remaining <= 0) return;
     
     setIsSubmitting(true);
-    setTimeout(() => {
-      const registrations = loadRegistrations();
-      const newRegistration: RegistrationData = {
-        id: Date.now().toString(),
+    
+    try {
+      // Preparar datos para el QR (necesita id y timestamp temporal)
+      const tempId = Date.now().toString();
+      const tempTimestamp = Date.now();
+      const qrData: Omit<RegistrationData, 'qrCode' | 'attended'> = {
+        id: tempId,
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone,
@@ -95,21 +114,54 @@ export default function HomePage() {
           gender: child.gender as 'male' | 'female',
           age: parseInt(child.age),
         })),
-        qrCode: '',
-        timestamp: Date.now(),
-        attended: false,
+        timestamp: tempTimestamp,
       };
-      const qrData = generateQRData(newRegistration);
-      newRegistration.qrCode = generateSimpleQR(qrData);
-      const updated = [...registrations, newRegistration];
-      saveRegistrations(updated);
+      const qrDataString = generateQRData(qrData);
+      const qrCode = generateSimpleQR(qrDataString);
+
+      // Enviar a la API
+      const response = await fetch('/api/registrations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          gender: formData.gender as 'male' | 'female' | 'other',
+          address: formData.address,
+          hasChildren: formData.hasChildren,
+          children: formData.children.map(child => ({
+            name: child.name,
+            gender: child.gender as 'male' | 'female',
+            age: parseInt(child.age),
+          })),
+          qrCode,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al guardar el registro');
+      }
+
+      const newRegistration = await response.json();
       
       // Guardar datos de éxito en sessionStorage para la página de éxito
       sessionStorage.setItem('successRegistration', JSON.stringify(newRegistration));
       
-      setIsSubmitting(false);
+      // Actualizar estadísticas locales
+      setStats(prev => ({
+        remaining: prev.remaining - 1,
+      }));
+      
       router.push('/exito');
-    }, 1500);
+    } catch (error) {
+      console.error('Error al guardar registro:', error);
+      alert('Error al guardar el registro. Por favor intenta de nuevo.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (authLoading) {
