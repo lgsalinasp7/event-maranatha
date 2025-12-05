@@ -168,25 +168,40 @@ npm run db:studio
 
 ## 🚀 Deployment en Vercel
 
-1. **Conectar con GitHub**
-   - Push tu código a GitHub
-   - Conecta el repositorio en Vercel
+Para una guía completa paso a paso, consulta [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
-2. **Configurar variables de entorno en Vercel**
-   - Ve a Settings → Environment Variables
-   - Agrega `DATABASE_URL` con tu connection string de Neon
-   - Agrega `NEXTAUTH_SECRET` (genera uno aleatorio)
+### Resumen rápido:
 
-3. **Deploy**
+1. **Código en GitHub** ✅ (Ya completado)
+   - Repositorio: `https://github.com/maranathamonteria/event-maranatha`
+
+2. **Configurar Neon Database**
+   - Crea un proyecto en [Neon Console](https://console.neon.tech)
+   - Copia la connection string (Pooled connection)
+
+3. **Conectar con Vercel**
+   - Importa el repositorio desde GitHub
+   - Configura variables de entorno:
+     - `DATABASE_URL` (connection string de Neon)
+     - `NEXTAUTH_SECRET` (genera una clave secreta)
+     - `NODE_ENV=production`
+
+4. **Deploy**
    - Vercel detectará automáticamente Next.js
-   - El build incluirá la generación de Prisma Client
+   - El build incluirá `prisma generate` automáticamente
+   - Después del deploy, ejecuta `npm run db:push` para aplicar el schema
+
+5. **Poblar datos iniciales**
+   ```bash
+   npm run db:seed
+   ```
 
 ## 📦 Dependencias Principales
 
 - `next`: ^16.0.7
 - `react`: ^19.2.0
-- `prisma`: ^6.x
-- `@prisma/client`: ^6.x
+- `prisma`: ^7.1.0
+- `@prisma/client`: ^7.1.0
 - `framer-motion`: ^12.23.25
 - `lucide-react`: ^0.556.0
 - `tailwindcss`: ^4
