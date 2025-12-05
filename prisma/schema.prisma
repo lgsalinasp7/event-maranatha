@@ -1,0 +1,79 @@
+// Prisma Schema para Event Maranatha
+// Configurado para Neon (PostgreSQL)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Modelo para usuarios administradores/organizadores
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(ORGANIZER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  ORGANIZER
+}
+
+// Modelo para registros de eventos
+model Registration {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  phone       String
+  gender      Gender
+  address     String
+  hasChildren Boolean  @default(false)
+  qrCode      String
+  attended    Boolean  @default(false)
+  timestamp   DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relación con niños
+  children Child[]
+
+  @@index([phone])
+  @@index([attended])
+  @@index([timestamp])
+  @@map("registrations")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+// Modelo para niños registrados
+model Child {
+  id             String      @id @default(cuid())
+  registrationId String
+  name           String
+  gender         ChildGender
+  age            Int
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relación con registro
+  registration Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@index([registrationId])
+  @@map("children")
+}
+
+enum ChildGender {
+  MALE
+  FEMALE
+}
