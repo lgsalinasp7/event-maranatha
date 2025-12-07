@@ -79,7 +79,7 @@ export function LoginForm() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                placeholder="admin@maranatha.com"
+                placeholder="event@maranatha.com"
                 disabled={isLoading}
               />
             </div>
