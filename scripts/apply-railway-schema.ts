@@ -18,11 +18,13 @@ async function main() {
   console.log('📡 Conectando a Railway PostgreSQL...');
   console.log(`   Host: ${connectionString.split('@')[1]?.split('/')[0]}`);
 
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaPg(pool);
-  const prisma = new PrismaClient({ adapter });
+  let pool: Pool | null = null;
+  let prisma: PrismaClient | null = null;
 
   try {
+    pool = new Pool({ connectionString });
+    const adapter = new PrismaPg(pool);
+    prisma = new PrismaClient({ adapter });
     // Verificar conexión
     await prisma.$connect();
     console.log('✅ Conexión exitosa!');
