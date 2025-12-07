@@ -7,7 +7,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 // Función para obtener el cliente de Prisma (lazy initialization)
-function getPrismaClient(): PrismaClient | null {
+function getPrismaClient() {
   if (globalForPrisma.prisma) {
     return globalForPrisma.prisma;
   }
@@ -21,7 +21,7 @@ function getPrismaClient(): PrismaClient | null {
     
     // Solo retornar null durante el build, nunca en runtime
     if (isBuildTime) {
-      return null; // Durante build, retornar null
+      return null as any; // Type assertion para evitar errores de tipo
     }
     
     // En runtime, si no hay DATABASE_URL, lanzar error
@@ -45,41 +45,4 @@ function getPrismaClient(): PrismaClient | null {
 
 // Prisma Client con adapter para Prisma 7
 // Se inicializa de forma lazy para evitar errores durante el build
-// En runtime, se inicializa cuando se usa por primera vez
-let prismaInstance: PrismaClient | null = null;
-
-function getPrisma(): PrismaClient {
-  if (!prismaInstance) {
-    const client = getPrismaClient();
-    if (!client) {
-      // Solo puede ser null durante build, en runtime siempre debe existir
-      throw new Error('Prisma client no pudo ser inicializado. DATABASE_URL no está disponible.');
-    }
-    prismaInstance = client;
-  }
-  return prismaInstance;
-}
-
-// Exportar como objeto con getter para lazy initialization
-// Esto asegura que Prisma solo se inicialice cuando se use, no al importar el módulo
-export const prisma = {
-  get $connect() {
-    return getPrisma().$connect.bind(getPrisma());
-  },
-  get $disconnect() {
-    return getPrisma().$disconnect.bind(getPrisma());
-  },
-  get $queryRaw() {
-    return getPrisma().$queryRaw.bind(getPrisma());
-  },
-  get registration() {
-    return getPrisma().registration;
-  },
-  get user() {
-    return getPrisma().user;
-  },
-  get child() {
-    return getPrisma().child;
-  },
-} as PrismaClient;
-
+export const prisma = getPrismaClient();
