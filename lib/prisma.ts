@@ -16,14 +16,15 @@ function getPrismaClient() {
   
   if (!connectionString) {
     // Durante el build, DATABASE_URL puede no estar disponible
-    // En este caso, retornar null y las rutas de API manejarán el error
-    // Esto aplica para Vercel, Railway y otros entornos de build
-    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || 
-                       process.env.NODE_ENV === 'production' && typeof window === 'undefined' && !connectionString;
+    // En este caso, retornar null SOLO durante el build, no en runtime
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
     
-    if (isBuildTime || process.env.VERCEL || process.env.RAILWAY_ENVIRONMENT) {
+    // Solo retornar null durante el build, nunca en runtime
+    if (isBuildTime) {
       return null as any; // Type assertion para evitar errores de tipo
     }
+    
+    // En runtime, si no hay DATABASE_URL, lanzar error
     throw new Error('DATABASE_URL no está configurada');
   }
 
