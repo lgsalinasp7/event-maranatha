@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+﻿import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
@@ -7,7 +7,8 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 // Función para obtener el cliente de Prisma (lazy initialization)
-function getPrismaClient() {
+// Retorna PrismaClient | null para permitir type-safe null checks en las rutas API
+function getPrismaClient(): PrismaClient | null {
   if (globalForPrisma.prisma) {
     return globalForPrisma.prisma;
   }
@@ -15,34 +16,36 @@ function getPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   
   if (!connectionString) {
-    // Durante el build, DATABASE_URL puede no estar disponible
-    // En este caso, retornar null SOLO durante el build, no en runtime
-    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
-    
-    // Solo retornar null durante el build, nunca en runtime
-    if (isBuildTime) {
-      return null as any; // Type assertion para evitar errores de tipo
+    // Si no hay DATABASE_URL, retornar null (tanto en build como en runtime)
+    // Esto permite que las rutas API verifiquen `if (!prisma)` y retornen 503
+    // en lugar de fallar al importar el módulo
+    return null;
+  }
+
+  try {
+    const pool = new Pool({ connectionString });
+    const adapter = new PrismaPg(pool);
+
+    const client = new PrismaClient({
+      adapter,
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    });
+
+    if (process.env.NODE_ENV !== 'production') {
+      globalForPrisma.prisma = client;
     }
-    
-    // En runtime, si no hay DATABASE_URL, lanzar error
-    throw new Error('DATABASE_URL no está configurada');
+
+    return client;
+  } catch (error) {
+    // Si hay un error al inicializar, retornar null en lugar de lanzar
+    // Esto permite que las rutas API manejen el error apropiadamente
+    console.error('Error initializing Prisma client:', error);
+    return null;
   }
-
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaPg(pool);
-
-  const client = new PrismaClient({
-    adapter,
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
-
-  if (process.env.NODE_ENV !== 'production') {
-    globalForPrisma.prisma = client;
-  }
-
-  return client;
 }
 
 // Prisma Client con adapter para Prisma 7
 // Se inicializa de forma lazy para evitar errores durante el build
-export const prisma = getPrismaClient();
+// Tipo: PrismaClient | null - permite type-safe null checks en las rutas API
+// Las rutas API deben verificar `if (!prisma)` antes de usar para retornar 503
+export const prisma: PrismaClient | null = getPrismaClient();
