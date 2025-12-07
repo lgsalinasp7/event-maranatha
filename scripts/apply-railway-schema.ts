@@ -46,10 +46,13 @@ async function main() {
     console.error('❌ Error:', error);
     process.exit(1);
   } finally {
-    await prisma.$disconnect();
-    await pool.end();
+    if (prisma) {
+      await prisma.$disconnect();
+    }
+    if (pool) {
+      await pool.end();
+    }
   }
 }
 
 main();
-
