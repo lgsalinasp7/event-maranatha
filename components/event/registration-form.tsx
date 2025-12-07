@@ -35,9 +35,9 @@ export function RegistrationForm({
       if (!formData.firstName.trim()) newErrors.firstName = 'Nombre es requerido';
       if (!formData.lastName.trim()) newErrors.lastName = 'Apellido es requerido';
       if (!formData.phone.trim()) {
-        newErrors.phone = 'Teléfono es requerido';
+        newErrors.phone = 'Celular es requerido';
       } else if (!validatePhone(formData.phone)) {
-        newErrors.phone = 'Formato de teléfono inválido';
+        newErrors.phone = 'celular equivocado';
       }
       if (!formData.gender) newErrors.gender = 'Seleccione un género';
     }
@@ -191,20 +191,23 @@ export function RegistrationForm({
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Número de Teléfono *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Celular *</label>
               <input
                 type="tel"
                 value={formData.phone}
-                onChange={e =>
+                onChange={e => {
+                  // Solo permitir números, máximo 10 dígitos
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                   setFormData({
                     ...formData,
-                    phone: e.target.value,
-                  })
-                }
+                    phone: value,
+                  });
+                }}
+                maxLength={10}
                 className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
                   errors.phone ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="+1234567890"
+                placeholder="3001234567"
               />
               {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
             </div>

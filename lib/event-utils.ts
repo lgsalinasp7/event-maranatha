@@ -3,7 +3,8 @@ import type { RegistrationData } from '@/types/event';
 export const MAX_ATTENDEES = 500;
 
 export const validatePhone = (phone: string): boolean => {
-  const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
+  // Validar número de celular colombiano: exactamente 10 dígitos, debe empezar con 3
+  const phoneRegex = /^3\d{9}$/;
   return phoneRegex.test(phone);
 };
 

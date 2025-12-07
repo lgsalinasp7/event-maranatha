@@ -192,9 +192,15 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-5xl md:text-6xl font-bold text-gray-900 mb-4"
+                className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-8 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent drop-shadow-lg"
+                style={{
+                  backgroundImage: 'linear-gradient(135deg, #9333ea 0%, #ec4899 50%, #2563eb 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  filter: 'drop-shadow(0 4px 6px rgba(147, 51, 234, 0.3))',
+                }}
               >
-                Bienvenido al Evento 2024
+                Mega Fiesta de Gracia
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
@@ -296,12 +302,20 @@ export default function HomePage() {
           >
             <div className="text-center mb-12">
               <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-5xl md:text-6xl font-bold text-gray-900 mb-4 text-center"
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 100 }}
+                className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-8 text-center relative"
+                style={{
+                  backgroundImage: 'linear-gradient(135deg, #9333ea 0%, #ec4899 50%, #2563eb 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  filter: 'drop-shadow(0 4px 8px rgba(147, 51, 234, 0.4))',
+                  textShadow: '0 0 30px rgba(147, 51, 234, 0.3)',
+                }}
               >
-                Bienvenido al Evento 2024
+                <span className="relative z-10">Mega Fiesta de Gracia</span>
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}

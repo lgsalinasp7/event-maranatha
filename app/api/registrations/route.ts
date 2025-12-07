@@ -4,6 +4,13 @@ import { Gender, ChildGender } from '@prisma/client';
 
 // GET - Obtener todos los registros
 export async function GET() {
+  if (!prisma) {
+    return NextResponse.json(
+      { error: 'Base de datos no configurada' },
+      { status: 503 }
+    );
+  }
+
   try {
     const registrations = await prisma.registration.findMany({
       include: {
@@ -15,7 +22,7 @@ export async function GET() {
     });
 
     // Transformar a formato compatible con el frontend
-    const formattedRegistrations = registrations.map(reg => ({
+    const formattedRegistrations = registrations.map((reg: any) => ({
       id: reg.id,
       firstName: reg.firstName,
       lastName: reg.lastName,
@@ -23,7 +30,7 @@ export async function GET() {
       gender: reg.gender.toLowerCase() as 'male' | 'female' | 'other',
       address: reg.address,
       hasChildren: reg.hasChildren,
-      children: reg.children.map(child => ({
+      children: reg.children.map((child: any) => ({
         id: child.id,
         name: child.name,
         gender: child.gender.toLowerCase() as 'male' | 'female',
@@ -46,6 +53,13 @@ export async function GET() {
 
 // POST - Crear un nuevo registro
 export async function POST(request: NextRequest) {
+  if (!prisma) {
+    return NextResponse.json(
+      { error: 'Base de datos no configurada' },
+      { status: 503 }
+    );
+  }
+
   try {
     const body = await request.json();
     const {
@@ -108,7 +122,7 @@ export async function POST(request: NextRequest) {
       gender: registration.gender.toLowerCase() as 'male' | 'female' | 'other',
       address: registration.address,
       hasChildren: registration.hasChildren,
-      children: registration.children.map(child => ({
+      children: registration.children.map((child: any) => ({
         id: child.id,
         name: child.name,
         gender: child.gender.toLowerCase() as 'male' | 'female',

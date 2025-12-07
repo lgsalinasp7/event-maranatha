@@ -6,6 +6,13 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!prisma) {
+    return NextResponse.json(
+      { error: 'Base de datos no configurada' },
+      { status: 503 }
+    );
+  }
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -35,7 +42,7 @@ export async function PATCH(
       gender: registration.gender.toLowerCase() as 'male' | 'female' | 'other',
       address: registration.address,
       hasChildren: registration.hasChildren,
-      children: registration.children.map(child => ({
+      children: registration.children.map((child: any) => ({
         id: child.id,
         name: child.name,
         gender: child.gender.toLowerCase() as 'male' | 'female',
@@ -61,6 +68,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!prisma) {
+    return NextResponse.json(
+      { error: 'Base de datos no configurada' },
+      { status: 503 }
+    );
+  }
+
   try {
     const { id } = await params;
     const searchParams = request.nextUrl.searchParams;
@@ -92,7 +106,7 @@ export async function GET(
       gender: registration.gender.toLowerCase() as 'male' | 'female' | 'other',
       address: registration.address,
       hasChildren: registration.hasChildren,
-      children: registration.children.map(child => ({
+      children: registration.children.map((child: any) => ({
         id: child.id,
         name: child.name,
         gender: child.gender.toLowerCase() as 'male' | 'female',
